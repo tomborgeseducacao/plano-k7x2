@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Simulador ST SPFC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F3F3F4; --surface:#FFFFFF; --ink:#141416; --muted:#5C5E66; --line:#DCDDE1;
+  --red:#D3112A; --red-soft:#FBE4E7; --good:#1C7A4D; --warn:#B26A00; --ref:#8A8C94;
+  --font-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E0E10; --surface:#18181B; --ink:#F2F2F3; --muted:#A3A5AD; --line:#2D2E34;
+    --red:#FF4A5E; --red-soft:#3A1519; --good:#4CC38A; --warn:#E3A33A; --ref:#7C7E87; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E0E10; --surface:#18181B; --ink:#F2F2F3; --muted:#A3A5AD; --line:#2D2E34;
+  --red:#FF4A5E; --red-soft:#3A1519; --good:#4CC38A; --warn:#E3A33A; --ref:#7C7E87; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header .by{margin:0 0 8px;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+header h1{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1;margin:0;letter-spacing:.01em;text-wrap:balance}
+header h1 span{color:var(--red)}
+header p{margin:6px 0 0;color:var(--muted);max-width:64ch}
+.layout{display:grid;grid-template-columns:minmax(290px,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.panel h2{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px}
+.controls{display:flex;flex-direction:column;gap:16px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.presets button{font:inherit;font-weight:600;font-size:13px;padding:9px 8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left;line-height:1.2}
+.presets button small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.presets button[aria-pressed="true"]{border-color:var(--red);background:var(--red-soft)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.field label{font-weight:600;font-size:13.5px}
+.field .hint{font-size:12px;color:var(--muted)}
+.field .inputs{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:center}
+input[type=range]{width:100%;accent-color:var(--red);margin:0}
+input[type=number]{font:inherit;font-variant-numeric:tabular-nums;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);text-align:right}
+.group-title{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;border-top:1px solid var(--line);padding-top:12px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;font:inherit;font-weight:600;padding:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--warn);border:1px solid var(--warn);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px}
+.result{display:flex;flex-direction:column;gap:18px;min-width:0}
+.lead{font-family:var(--font-display);font-size:clamp(22px,3.2vw,30px);line-height:1.15;font-weight:600;margin:0;text-wrap:balance}
+.lead b{color:var(--red);font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;min-width:0}
+.kpi .k{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.kpi .v{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+.kpi.main{border-color:var(--red)}
+.chartbox{overflow-x:auto}
+svg.chart{display:block;width:100%;min-width:520px;height:auto}
+svg.chart text{font-family:var(--font-body);font-size:11px;fill:var(--muted)}
+svg.chart .grid{stroke:var(--line);stroke-width:1}
+svg.chart .curve{fill:none;stroke:var(--red);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+svg.chart .area{fill:var(--red);opacity:.09}
+svg.chart .meta{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:6 4}
+svg.chart .ref{stroke:var(--ref);stroke-width:1;stroke-dasharray:2 4}
+svg.chart .dot{fill:var(--surface);stroke:var(--red);stroke-width:2}
+svg.chart .end{fill:var(--red)}
+svg.chart text.lab{fill:var(--ink);font-weight:600}
+.pen{display:flex;flex-direction:column;gap:7px}
+.pen .line{display:grid;grid-template-columns:150px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:13.5px}
+.pen .bar{height:14px;background:var(--bg);border-radius:2px;position:relative;overflow:hidden}
+.pen .bar i{position:absolute;inset:0 auto 0 0;background:var(--ref);display:block;border-radius:2px}
+.pen .line.spfc .bar i{background:var(--red)}
+.pen .line.spfc2 .bar i{background:var(--ink)}
+.pen .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+@media (max-width:520px){.pen .line{grid-template-columns:104px minmax(0,1fr) 54px;font-size:12.5px}}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums;font-size:13px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--surface)}
+th:first-child,td:first-child{text-align:left}
+tr.hit td{background:var(--red-soft)}
+td input{width:104px;padding:3px 6px;font-size:13px}
+td input.adj{border-color:var(--red);background:var(--red-soft)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.toolbar p{margin:0;color:var(--muted);font-size:13px;max-width:62ch}
+.ghost{font:inherit;font-weight:600;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);cursor:pointer}
+.notes{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.notes a{color:var(--ink)}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+header{position:relative}
+.ver{position:absolute;top:0;right:0;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:2px 8px;background:var(--surface);font-variant-numeric:tabular-nums}
+.conf{margin:0;text-align:center;font-size:13px;color:var(--muted)}
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="ver">Versão 1.1</span>
+    <p class="by">Tom Borges</p>
+    <h1>Simulador <span>Sócio-Torcedor</span> SPFC</h1>
+    <p>Mexa nas premissas do MGM e veja a base de sócios mudar mês a mês. Cada mês parte da base do mês anterior, e você pode digitar a base real de qualquer mês na tabela.</p>
+  </header>
+
+  <div class="layout">
+    <aside class="panel controls" aria-label="Premissas">
+      <div>
+        <h2>Cenários</h2>
+        <div class="presets" id="presets"></div>
+      </div>
+      <div id="fields" class="controls"></div>
+    </aside>
+
+    <main class="result">
+      <p class="lead" id="lead"></p>
+      <div class="kpis" id="kpis"></div>
+
+      <section class="panel">
+        <h2>Evolução da base de sócios</h2>
+        <div class="chartbox"><svg class="chart" id="chart" viewBox="0 0 760 320" role="img" aria-label="Gráfico da evolução da base de sócios por mês"></svg></div>
+      </section>
+
+      <section class="panel">
+        <h2>Quanto da torcida vira sócio</h2>
+        <div class="pen" id="pen"></div>
+        <p class="notes" style="margin:10px 0 0">Penetração = sócios adimplentes ÷ torcida estimada (percentual de torcedores × 213 milhões de brasileiros). Estimativa para comparação, não dado oficial.</p>
+      </section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <h2 style="margin:0">Mês a mês</h2>
+          <button class="ghost" id="clearAdj" type="button">Limpar bases ajustadas</button>
+        </div>
+        <p class="notes" style="margin:0 0 10px">Digite uma base real na coluna "Base final" para fixar aquele mês. Os meses seguintes passam a partir dela.</p>
+        <div class="tablewrap"><table id="tbl"></table></div>
+      </section>
+
+      <section class="panel notes">
+        <h2>Fontes e premissas</h2>
+        <ul>
+          <li>Base inicial: 48.281 sócios adimplentes do SPFC em 30/01/2026, no levantamento do ge. No mesmo levantamento: Atlético-MG 144.431, Corinthians 118.545, Flamengo 118.000, Internacional 108.809, Grêmio 101.651 e Palmeiras 167.909.</li>
+          <li>Tamanho das torcidas: pesquisa AtlasIntel (SPFC 9,9%, Palmeiras 7,7%, Atlético-MG 4,3%, Internacional 3,5%, Grêmio 4,6%, Corinthians 14,2%, Flamengo 21,9%).</li>
+          <li>Cancelamento: relatório da FutebolCard aponta entre 10% e 38% no cartão recorrente e entre 75% e 98% no boleto, sem informar o período. Um cancelamento de 1,5% ao mês equivale a cerca de 16,6% ao ano, e 2,5% ao mês a cerca de 26%.</li>
+          <li>Choque de cancelamento: o SPFC caiu de 57.567 para 52.813 sócios (-8,3%) em um mês, após a eliminação na Libertadores.</li>
+          <li>O teto de penetração freia o crescimento conforme a base se aproxima do potencial da torcida. Sem ele, qualquer taxa composta cresce sem limite.</li>
+          <li>Receita de parceiros usa valores ilustrativos de uso da carteira e gasto médio. Ajuste com seus dados.</li>
+        </ul>
+        <p style="margin:4px 0 0">Links: <a href="https://www.correio24horas.com.br/esportes/bahia-lidera-o-nordeste-e-vitoria-cresce-veja-a-posicao-dos-clubes-no-ranking-de-socios-0226" target="_blank" rel="noopener">ranking de sócios (ge, via Correio)</a> · <a href="https://pt.soccerway.com/noticias/futebol-serie-a-novo-estudo-coloca-flamengo-no-topo-dos-clubes-com-mais-adeptos-do-brasil/4nqAjuVG" target="_blank" rel="noopener">torcidas (AtlasIntel)</a> · <a href="https://blogs.correiobraziliense.com.br/dribledecorpo/entrevista-no-dia-do-cliente-robson-oliveira-fala-do-valor-do-torcedor/" target="_blank" rel="noopener">cancelamento (FutebolCard)</a></p>
+      </section>
+    </main>
+  </div>
+  <p class="conf">Material confidencial, preparado por Tom Borges para uso exclusivo de Vinicius de Medeiros.</p>
+</div>
+
+<script>
+(function(){
+  var POP = 213e6;
+  var SPFC_SHARE = 0.099;
+  var TORCIDA = SPFC_SHARE * POP;
+
+  var PRESETS = [
+    {id:'conservador', name:'Conservador', sub:'15% indicam, 30% convertem', v:{pctInd:15,conv:30,perSocio:1,churn:2.5,captacao:500}},
+    {id:'mgm', name:'MGM puro', sub:'30% indicam, 40% convertem', v:{pctInd:30,conv:40,perSocio:1,churn:2.5,captacao:0}},
+    {id:'tom', name:'Plano Tom completo', sub:'MGM + estádio e parceiros', v:{pctInd:30,conv:40,perSocio:1,churn:2.5,captacao:3000}},
+    {id:'acelerado', name:'Acelerado', sub:'40% indicam, 50% convertem', v:{pctInd:40,conv:50,perSocio:1,churn:2.5,captacao:4000}}
+  ];
+
+  var FIELDS = [
+    {g:'Base e meta'},
+    {id:'base', label:'Base inicial de sócios', min:10000, max:120000, step:1, def:48281, fmt:'int', hint:'Adimplentes em jan/2026'},
+    {id:'meta', label:'Meta de sócios', min:50000, max:600000, step:5000, def:300000, fmt:'int', hint:'Plano básico'},
+    {g:'MGM (sócio indica sócio)'},
+    {id:'pctInd', label:'Sócios que indicam por mês (%)', min:0, max:60, step:1, def:30, fmt:'pct', hint:'Sobre a base do mês'},
+    {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:3, step:0.5, def:1, fmt:'dec', hint:'Sem limite de indicações'},
+    {id:'conv', label:'Conversão da indicação (%)', min:0, max:80, step:1, def:40, fmt:'pct', hint:'Amigos que viram sócios'},
+    {g:'Outras entradas e saídas'},
+    {id:'captacao', label:'Captação direta por mês', min:0, max:10000, step:100, def:3000, fmt:'int', hint:'Estádio, lojas parceiras, campanhas'},
+    {id:'churn', label:'Cancelamento mensal (%)', min:0, max:6, step:0.1, def:2.5, fmt:'dec', hint:'Sobre a base do mês. Plano de gestão: 1,5%'},
+    {id:'teto', label:'Teto de penetração (% da torcida)', min:1, max:6, step:0.1, def:3, fmt:'dec', hint:'Potencial máximo de sócios'},
+    {id:'shockMes', label:'Mês do choque esportivo (0 = sem)', min:0, max:36, step:1, def:0, fmt:'int', hint:'Ex.: eliminação em copa'},
+    {id:'shockExtra', label:'Perda extra no choque (%)', min:0, max:20, step:0.5, def:8, fmt:'dec', hint:'Referência histórica: 8,3%'},
+    {g:'Receita'},
+    {id:'mensal', label:'Mensalidade do plano básico (R$)', min:5, max:30, step:0.1, def:9.9, fmt:'dec', hint:'Plano de entrada'},
+    {id:'uso', label:'Sócios que usam a carteira (%)', min:0, max:100, step:5, def:30, fmt:'pct', hint:'Ilustrativo', tag:true},
+    {id:'gasto', label:'Gasto mensal em parceiros (R$)', min:0, max:500, step:10, def:120, fmt:'int', hint:'Ilustrativo, por sócio que usa', tag:true},
+    {id:'comissao', label:'Repasse dos parceiros ao clube (%)', min:0, max:10, step:0.5, def:4, fmt:'dec', hint:'Lojas parceiras pagam 4%'}
+  ];
+
+  var state = {horizon:12, override:{}, preset:'tom'};
+  FIELDS.forEach(function(f){ if(f.id) state[f.id] = f.def; });
+
+  function nf(n, d){ return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  function mil(n){ return n>=1000 ? nf(n/1000, n>=100000?0:1)+' mil' : nf(n); }
+  function brl(n){ return 'R$ '+(n>=1e6 ? nf(n/1e6,2)+' mi' : nf(n)); }
+
+  function simulate(){
+    var s = state, B = s.base, rows = [];
+    var teto = (s.teto/100) * TORCIDA;
+    for(var t=1;t<=s.horizon;t++){
+      var start = B;
+      var sat = Math.max(0, 1 - start/teto);
+      var indicadores = start * s.pctInd/100;
+      var indicacoes = indicadores * s.perSocio;
+      var novosMGM = indicacoes * (s.conv/100) * sat;
+      var outros = s.captacao * sat;
+      var churnT = s.churn/100 + (t===s.shockMes ? s.shockExtra/100 : 0);
+      var cancel = start * churnT;
+      var end = start + novosMGM + outros - cancel;
+      var adj = false;
+      if(state.override[t]!=null){ end = state.override[t]; adj = true; }
+      rows.push({t:t,start:start,indicadores:indicadores,novosMGM:novosMGM,outros:outros,cancel:cancel,end:end,adj:adj});
+      B = end;
+    }
+    rows.forEach(function(r,i){
+      r.ingressos = i>=3 ? rows[i-3].novosMGM * Math.pow(1 - s.churn/100, 3) : 0;
+      r.receita = r.end * s.mensal + r.end * (s.uso/100) * s.gasto * (s.comissao/100);
+    });
+    return rows;
+  }
+
+  /* ---------- controles ---------- */
+  function fmtVal(f,v){
+    if(f.fmt==='pct') return nf(v,0)+'%';
+    if(f.fmt==='dec') return nf(v,1);
+    return nf(v);
+  }
+  function buildControls(){
+    var host = document.getElementById('fields');
+    var html = '';
+    FIELDS.forEach(function(f){
+      if(f.g){ html += '<div class="group-title">'+f.g+'</div>'; return; }
+      html += '<div class="field"><div class="row"><label for="n_'+f.id+'">'+f.label+(f.tag?'<span class="tag">ilustrativo</span>':'')+'</label></div>'
+        + '<div class="inputs"><input type="range" id="r_'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.def+'" aria-label="'+f.label+'">'
+        + '<input type="number" id="n_'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.def+'" inputmode="decimal"></div>'
+        + '<div class="hint">'+f.hint+'</div></div>';
+    });
+    html += '<div class="group-title">Horizonte</div><div class="seg" id="hz">'
+      + [12,24,36].map(function(h){ return '<button type="button" data-h="'+h+'" aria-pressed="'+(h===state.horizon)+'">'+h+' meses</button>'; }).join('')
+      + '</div>';
+    host.innerHTML = html;
+
+    FIELDS.forEach(function(f){
+      if(!f.id) return;
+      var r = document.getElementById('r_'+f.id), n = document.getElementById('n_'+f.id);
+      function set(v){
+        v = parseFloat(v); if(isNaN(v)) return;
+        state[f.id] = v; state.preset = null;
+        if(document.activeElement!==r) r.value = v;
+        if(document.activeElement!==n) n.value = v;
+        render();
+      }
+      r.addEventListener('input', function(){ n.value = r.value; set(r.value); });
+      n.addEventListener('input', function(){ set(n.value); });
+    });
+    document.getElementById('hz').addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      state.horizon = parseInt(b.dataset.h,10);
+      Array.prototype.forEach.call(this.children, function(x){ x.setAttribute('aria-pressed', x===b); });
+      render();
+    });
+  }
+  function syncInputs(){
+    FIELDS.forEach(function(f){
+      if(!f.id) return;
+      document.getElementById('r_'+f.id).value = state[f.id];
+      document.getElementById('n_'+f.id).value = state[f.id];
+    });
+  }
+  function buildPresets(){
+    var host = document.getElementById('presets');
+    host.innerHTML = PRESETS.map(function(p){
+      return '<button type="button" data-p="'+p.id+'">'+p.name+'<small>'+p.sub+'</small></button>';
+    }).join('');
+    host.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      var p = PRESETS.filter(function(x){ return x.id===b.dataset.p; })[0];
+      Object.keys(p.v).forEach(function(k){ state[k] = p.v[k]; });
+      state.preset = p.id; state.override = {};
+      syncInputs(); render();
+    });
+  }
+
+  /* ---------- render ---------- */
+  function niceMax(v){
+    var steps = [50e3,100e3,150e3,200e3,250e3,300e3,400e3,500e3,600e3,800e3,1e6,1.5e6,2e6];
+    for(var i=0;i<steps.length;i++) if(v<=steps[i]) return steps[i];
+    return Math.ceil(v/1e6)*1e6;
+  }
+  function drawChart(rows){
+    var W=760,H=320,L=58,R=70,T=18,B=34;
+    var s=state, maxEnd=Math.max.apply(null, rows.map(function(r){return r.end;}).concat([s.base]));
+    var ymax = niceMax(Math.max(s.meta*1.1, maxEnd*1.05));
+    var n = rows.length;
+    function X(i){ return L + (W-L-R) * i / n; }
+    function Y(v){ return T + (H-T-B) * (1 - v/ymax); }
+    var g = '';
+    var ticks = 5;
+    for(var i=0;i<=ticks;i++){
+      var v = ymax*i/ticks, y = Y(v);
+      g += '<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/>';
+      g += '<text x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end">'+mil(v)+'</text>';
+    }
+    var xs = n<=12 ? 1 : (n<=24 ? 2 : 3);
+    for(var m=0;m<=n;m+=xs){
+      g += '<text x="'+X(m)+'" y="'+(H-12)+'" text-anchor="middle">'+(m===0?'hoje':'m'+m)+'</text>';
+    }
+    var pal = 167909;
+    if(pal < ymax){
+      g += '<line class="ref" x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(pal)+'" y2="'+Y(pal)+'"/>';
+      g += '<text x="'+(W-R+4)+'" y="'+(Y(pal)+4)+'">Palmeiras</text>';
+    }
+    g += '<line class="meta" x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(s.meta)+'" y2="'+Y(s.meta)+'"/>';
+    g += '<text class="lab" x="'+(W-R+4)+'" y="'+(Y(s.meta)+4)+'">Meta</text>';
+    var pts = [[0,s.base]].concat(rows.map(function(r){ return [r.t, r.end]; }));
+    var d = pts.map(function(p,i){ return (i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); }).join(' ');
+    g += '<path class="area" d="'+d+' L'+X(n)+' '+Y(0)+' L'+X(0)+' '+Y(0)+' Z"/>';
+    g += '<path class="curve" d="'+d+'"/>';
+    pts.forEach(function(p,i){
+      var last = i===pts.length-1;
+      if(last){ g += '<circle class="end" cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="5"><title>Mês '+p[0]+': '+nf(p[1])+' sócios</title></circle>'; }
+      else if(n<=24){ g += '<circle class="dot" cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="3.5"><title>'+(p[0]===0?'Hoje':'Mês '+p[0])+': '+nf(p[1])+' sócios</title></circle>'; }
+    });
+    var lp = pts[pts.length-1];
+    var ly = Math.max(T+12, Y(lp[1]) - 10);
+    g += '<text class="lab" x="'+(X(lp[0])-8)+'" y="'+ly+'" text-anchor="end">'+mil(lp[1])+'</text>';
+    document.getElementById('chart').innerHTML = g;
+  }
+  function drawPen(rows){
+    var last = rows[rows.length-1];
+    var items = [
+      ['SPFC hoje', 48281/TORCIDA, 'spfc'],
+      ['SPFC mês '+state.horizon, last.end/TORCIDA, 'spfc2'],
+      ['Atlético-MG', 144431/(.043*POP), ''],
+      ['Internacional', 108809/(.035*POP), ''],
+      ['Grêmio', 101651/(.046*POP), ''],
+      ['Palmeiras', 167909/(.077*POP), ''],
+      ['Corinthians', 118545/(.142*POP), ''],
+      ['Flamengo', 118000/(.219*POP), '']
+    ];
+    var mx = Math.max.apply(null, items.map(function(i){return i[1];}));
+    document.getElementById('pen').innerHTML = items.map(function(i){
+      return '<div class="line '+i[2]+'"><span>'+i[0]+'</span><div class="bar"><i style="width:'+(i[1]/mx*100).toFixed(1)+'%"></i></div><span class="val">'+nf(i[1]*100,2)+'%</span></div>';
+    }).join('');
+  }
+  function drawTable(rows, hitT){
+    var h = '<thead><tr><th>Mês</th><th>Base inicial</th><th>Indicam</th><th>Novos MGM</th><th>Captação direta</th><th>Cancelam</th><th>Base final</th><th>Ingressos MGM</th><th>Receita/mês</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      h += '<tr'+(r.t===hitT?' class="hit"':'')+'><td>'+r.t+'</td><td>'+nf(r.start)+'</td><td>'+nf(r.indicadores)+'</td><td>'+nf(r.novosMGM)+'</td><td>'+nf(r.outros)+'</td><td>-'+nf(r.cancel)+'</td>'
+        + '<td><input type="number" id="o_'+r.t+'" data-t="'+r.t+'" class="'+(r.adj?'adj':'')+'" value="'+Math.round(r.end)+'" aria-label="Base final do mês '+r.t+'"></td>'
+        + '<td>'+nf(r.ingressos)+'</td><td>'+brl(r.receita)+'</td></tr>';
+    });
+    document.getElementById('tbl').innerHTML = h + '</tbody>';
+  }
+  function render(){
+    var rows = simulate(), s = state;
+    var hit = null; rows.forEach(function(r){ if(hit===null && r.end>=s.meta) hit = r.t; });
+    var r12 = rows[11], last = rows[rows.length-1];
+    var lead = 'Em 12 meses o SPFC chega a <b>'+nf(r12.end)+' sócios</b>. ';
+    lead += hit ? 'A meta de '+nf(s.meta)+' é atingida no <b>mês '+hit+'</b>.' : 'A meta de '+nf(s.meta)+' não é atingida em '+s.horizon+' meses.';
+    document.getElementById('lead').innerHTML = lead;
+
+    var netMonthly = Math.pow(last.end/s.base, 1/rows.length) - 1;
+    var churnYear = 1 - Math.pow(1 - s.churn/100, 12);
+    document.getElementById('kpis').innerHTML =
+      kpi('Sócios no mês 12', nf(r12.end), nf(r12.end/s.base,1)+'x a base inicial', true)
+      + kpi('Mês da meta', hit?('mês '+hit):'não atinge', 'meta de '+mil(s.meta)+' sócios')
+      + kpi('Sócios no mês '+s.horizon, nf(last.end), nf(last.end/TORCIDA*100,2)+'% da torcida')
+      + kpi('Crescimento líquido', nf(netMonthly*100,1)+'% ao mês', 'média no horizonte')
+      + kpi('Receita mensal, mês 12', brl(r12.receita), 'mensalidade + parceiros')
+      + kpi('Cancelamento anual', nf(churnYear*100,1)+'%', 'equivalente a '+nf(s.churn,1)+'% ao mês');
+    drawChart(rows); drawPen(rows); drawTable(rows, hit);
+
+    Array.prototype.forEach.call(document.querySelectorAll('#presets button'), function(b){
+      b.setAttribute('aria-pressed', b.dataset.p===state.preset);
+    });
+  }
+  function kpi(k,v,sub,main){
+    return '<div class="kpi'+(main?' main':'')+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+sub+'</div></div>';
+  }
+
+  document.getElementById('tbl').addEventListener('change', function(e){
+    var el = e.target; if(!el.dataset || !el.dataset.t) return;
+    var t = parseInt(el.dataset.t,10), v = parseFloat(el.value);
+    if(isNaN(v) || v<0){ delete state.override[t]; } else { state.override[t] = v; }
+    render();
+  });
+  document.getElementById('clearAdj').addEventListener('click', function(){ state.override = {}; render(); });
+
+  buildControls(); buildPresets();
+  var p0 = PRESETS.filter(function(p){ return p.id===state.preset; })[0];
+  Object.keys(p0.v).forEach(function(k){ state[k] = p0.v[k]; });
+  syncInputs(); render();
+})();
+</script>
+
+</body>
+</html>
