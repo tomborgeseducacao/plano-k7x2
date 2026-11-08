@@ -107,7 +107,7 @@ header{position:relative}
 
 <div class="wrap">
   <header>
-    <span class="ver">Versão 1.1</span>
+    <span class="ver">Versão 1.2</span>
     <p class="by">Tom Borges</p>
     <h1>Simulador <span>Sócio-Torcedor</span> SPFC</h1>
     <p>Mexa nas premissas do MGM e veja a base de sócios mudar mês a mês. Cada mês parte da base do mês anterior, e você pode digitar a base real de qualquer mês na tabela.</p>
@@ -182,7 +182,7 @@ header{position:relative}
     {id:'meta', label:'Meta de sócios', min:50000, max:600000, step:5000, def:300000, fmt:'int', hint:'Plano básico'},
     {g:'MGM (sócio indica sócio)'},
     {id:'pctInd', label:'Sócios que indicam por mês (%)', min:0, max:60, step:1, def:30, fmt:'pct', hint:'Sobre a base do mês'},
-    {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:3, step:0.5, def:1, fmt:'dec', hint:'Sem limite de indicações'},
+    {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:20, step:0.5, def:1, fmt:'dec', hint:'Sem limite: você pode digitar qualquer valor'},
     {id:'conv', label:'Conversão da indicação (%)', min:0, max:80, step:1, def:40, fmt:'pct', hint:'Amigos que viram sócios'},
     {g:'Outras entradas e saídas'},
     {id:'captacao', label:'Captação direta por mês', min:0, max:10000, step:100, def:3000, fmt:'int', hint:'Estádio, lojas parceiras, campanhas'},
