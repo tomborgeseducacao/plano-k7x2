@@ -109,7 +109,7 @@ header{position:relative}
 
 <div class="wrap">
   <header>
-    <span class="ver">Versão 1.5</span>
+    <span class="ver">Versão 1.6</span>
     <p class="by">Tom Borges</p>
     <h1>Simulador <span>Sócio-Torcedor</span> SPFC</h1>
     <p>Mexa nas premissas do MGM e veja a base de sócios mudar mês a mês. Cada mês parte da base do mês anterior, e você pode digitar a base real de qualquer mês na tabela.</p>
@@ -172,10 +172,10 @@ header{position:relative}
   var TORCIDA = SPFC_SHARE * POP;
 
   var PRESETS = [
-    {id:'conservador', name:'Conservador', sub:'15% indicam, 30% convertem', v:{pctInd:15,conv:30,perSocio:1,churn:2.5,captacao:500}},
+    {id:'conservador', name:'Conservador', sub:'15% indicam, 30% convertem', v:{pctInd:15,conv:30,perSocio:1,churn:2.5,captacao:0}},
     {id:'mgm', name:'MGM puro', sub:'30% indicam, 40% convertem', v:{pctInd:30,conv:40,perSocio:1,churn:2.5,captacao:0}},
-    {id:'tom', name:'Plano Tom completo', sub:'MGM + estádio e parceiros', v:{pctInd:30,conv:40,perSocio:1,churn:2.5,captacao:3000}},
-    {id:'acelerado', name:'Acelerado', sub:'40% indicam, 50% convertem', v:{pctInd:40,conv:50,perSocio:1,churn:2.5,captacao:4000}}
+    {id:'tom', name:'Plano Tom completo', sub:'Mesmos números do MGM puro', v:{pctInd:30,conv:40,perSocio:1,churn:2.5,captacao:0}},
+    {id:'acelerado', name:'Acelerado', sub:'40% indicam, 50% convertem', v:{pctInd:40,conv:50,perSocio:1,churn:2.5,captacao:0}}
   ];
 
   var FIELDS = [
@@ -187,7 +187,7 @@ header{position:relative}
     {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:20, step:0.5, def:1, fmt:'dec', hint:'Quantos amigos cada sócio que indica convida por mês. Sem limite: você pode digitar qualquer valor.', warnAbove:3},
     {id:'conv', label:'Conversão da indicação (%)', min:0, max:80, step:1, def:40, fmt:'pct', hint:'De cada 100 amigos indicados, quantos de fato viram sócios.'},
     {g:'Outras entradas e saídas'},
-    {id:'captacao', label:'Captação direta por mês', min:0, max:10000, step:100, def:3000, fmt:'int', hint:'Novos sócios que chegam por outros canais, sem indicação: estádio, lojas parceiras e campanhas.'},
+     
     {id:'churn', label:'Cancelamento mensal (%)', min:0, max:6, step:0.1, def:2.5, fmt:'dec', hint:'Parte da base que cancela a cada mês. O plano de gestão assume 1,5%; a referência deste material é 2,5%.'},
     {id:'teto', label:'Teto de penetração (% da torcida)', min:1, max:6, step:0.1, def:3, fmt:'dec', hint:'Limite máximo de sócios, como % da torcida (cerca de 21 milhões). Perto do teto, as entradas vão diminuindo.'},
     {id:'elimMes', label:'Mês da eliminação (0 = sem)', min:0, max:36, step:1, def:0, fmt:'int', hint:'Mês em que o time é eliminado de uma competição importante. Nesse mês o cancelamento sobe 8,3% da base, como após a Libertadores. 0 = sem eliminação.'},
@@ -199,7 +199,7 @@ header{position:relative}
      
   ];
 
-  var state = {horizon:12, override:{}, preset:'tom'};
+  var state = {horizon:12, override:{}, preset:'tom', captacao:0};
   FIELDS.forEach(function(f){ if(f.id) state[f.id] = f.def; });
 
   function nf(n, d){ return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
@@ -356,7 +356,7 @@ header{position:relative}
     }).join('');
   }
   function drawTable(rows, hitT){
-    var h = '<thead><tr><th>Mês</th><th>Base inicial</th><th>Indicam</th><th>Novos MGM</th><th>Captação direta</th><th>Cancelam</th><th>Base final</th><th>Ingressos MGM</th><th>Receita/mês</th></tr></thead><tbody>';
+    var h = '<thead><tr><th>Mês</th><th>Base inicial</th><th>Indicam</th><th>Novos MGM</th><th>Entradas extras</th><th>Cancelam</th><th>Base final</th><th>Ingressos MGM</th><th>Receita/mês</th></tr></thead><tbody>';
     rows.forEach(function(r){
       h += '<tr'+(r.t===hitT?' class="hit"':'')+'><td>'+r.t+'</td><td>'+nf(r.start)+'</td><td>'+nf(r.indicadores)+'</td><td>'+nf(r.novosMGM)+'</td><td>'+nf(r.outros)+'</td><td>-'+nf(r.cancel)+'</td>'
         + '<td><input type="number" id="o_'+r.t+'" data-t="'+r.t+'" class="'+(r.adj?'adj':'')+'" value="'+Math.round(r.end)+'" aria-label="Base final do mês '+r.t+'"></td>'
