@@ -109,7 +109,7 @@ header{position:relative}
 
 <div class="wrap">
   <header>
-    <span class="ver">Versão 1.4</span>
+    <span class="ver">Versão 1.5</span>
     <p class="by">Tom Borges</p>
     <h1>Simulador <span>Sócio-Torcedor</span> SPFC</h1>
     <p>Mexa nas premissas do MGM e veja a base de sócios mudar mês a mês. Cada mês parte da base do mês anterior, e você pode digitar a base real de qualquer mês na tabela.</p>
@@ -156,7 +156,7 @@ header{position:relative}
           <li>Cancelamento: relatório da FutebolCard aponta entre 10% e 38% no cartão recorrente e entre 75% e 98% no boleto, sem informar o período. Um cancelamento de 1,5% ao mês equivale a cerca de 16,6% ao ano, e 2,5% ao mês a cerca de 26%.</li>
           <li>Choque de cancelamento: o SPFC caiu de 57.567 para 52.813 sócios (-8,3%) em um mês, após a eliminação na Libertadores.</li>
           <li>O teto de penetração freia o crescimento conforme a base se aproxima do potencial da torcida. Sem ele, qualquer taxa composta cresce sem limite.</li>
-          <li>Receita de parceiros usa valores ilustrativos de uso da carteira e gasto médio. Ajuste com seus dados.</li>
+          <li>Eliminação: o cancelamento sobe 8,3% da base no mês, como a queda do SPFC após a Libertadores. Título: entrada extra de 8,3% da base no mês, estimativa ilustrativa, sem dado histórico.</li>
         </ul>
         <p style="margin:4px 0 0">Links: <a href="https://www.correio24horas.com.br/esportes/bahia-lidera-o-nordeste-e-vitoria-cresce-veja-a-posicao-dos-clubes-no-ranking-de-socios-0226" target="_blank" rel="noopener">ranking de sócios (ge, via Correio)</a> · <a href="https://pt.soccerway.com/noticias/futebol-serie-a-novo-estudo-coloca-flamengo-no-topo-dos-clubes-com-mais-adeptos-do-brasil/4nqAjuVG" target="_blank" rel="noopener">torcidas (AtlasIntel)</a> · <a href="https://blogs.correiobraziliense.com.br/dribledecorpo/entrevista-no-dia-do-cliente-robson-oliveira-fala-do-valor-do-torcedor/" target="_blank" rel="noopener">cancelamento (FutebolCard)</a></p>
       </section>
@@ -180,23 +180,23 @@ header{position:relative}
 
   var FIELDS = [
     {g:'Base e meta'},
-    {id:'base', label:'Base inicial de sócios', min:10000, max:120000, step:1, def:48281, fmt:'int', hint:'Adimplentes em jan/2026'},
-    {id:'meta', label:'Meta de sócios', min:50000, max:1000000, step:5000, def:300000, fmt:'int', hint:'Sem limite: você pode digitar qualquer valor'},
+    {id:'base', label:'Base inicial de sócios', min:10000, max:120000, step:1, def:48281, fmt:'int', hint:'Quantos sócios adimplentes o clube tem hoje. É o ponto de partida da simulação (jan/2026: 48.281).'},
+    {id:'meta', label:'Meta de sócios', min:50000, max:1000000, step:5000, def:300000, fmt:'int', hint:'Número de sócios que o clube quer alcançar. Aparece no gráfico e define o mês em que a meta é atingida.'},
     {g:'MGM (sócio indica sócio)'},
-    {id:'pctInd', label:'Sócios que indicam por mês (%)', min:0, max:100, step:1, def:30, fmt:'pct', hint:'Sobre a base do mês', warnAbove:40},
-    {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:20, step:0.5, def:1, fmt:'dec', hint:'Sem limite: você pode digitar qualquer valor', warnAbove:3},
-    {id:'conv', label:'Conversão da indicação (%)', min:0, max:80, step:1, def:40, fmt:'pct', hint:'Amigos que viram sócios'},
+    {id:'pctInd', label:'Sócios que indicam por mês (%)', min:0, max:100, step:1, def:30, fmt:'pct', hint:'Parte dos sócios que chama algum amigo para virar sócio a cada mês. Quanto maior, mais forte é o MGM.', warnAbove:40},
+    {id:'perSocio', label:'Indicações por sócio que indica', min:1, max:20, step:0.5, def:1, fmt:'dec', hint:'Quantos amigos cada sócio que indica convida por mês. Sem limite: você pode digitar qualquer valor.', warnAbove:3},
+    {id:'conv', label:'Conversão da indicação (%)', min:0, max:80, step:1, def:40, fmt:'pct', hint:'De cada 100 amigos indicados, quantos de fato viram sócios.'},
     {g:'Outras entradas e saídas'},
-    {id:'captacao', label:'Captação direta por mês', min:0, max:10000, step:100, def:3000, fmt:'int', hint:'Estádio, lojas parceiras, campanhas'},
-    {id:'churn', label:'Cancelamento mensal (%)', min:0, max:6, step:0.1, def:2.5, fmt:'dec', hint:'Sobre a base do mês. Plano de gestão: 1,5%'},
-    {id:'teto', label:'Teto de penetração (% da torcida)', min:1, max:6, step:0.1, def:3, fmt:'dec', hint:'Potencial máximo de sócios'},
-    {id:'shockMes', label:'Mês do choque esportivo (0 = sem)', min:0, max:36, step:1, def:0, fmt:'int', hint:'Ex.: eliminação em copa'},
-    {id:'shockExtra', label:'Perda extra no choque (%)', min:0, max:20, step:0.5, def:8, fmt:'dec', hint:'Referência histórica: 8,3%'},
+    {id:'captacao', label:'Captação direta por mês', min:0, max:10000, step:100, def:3000, fmt:'int', hint:'Novos sócios que chegam por outros canais, sem indicação: estádio, lojas parceiras e campanhas.'},
+    {id:'churn', label:'Cancelamento mensal (%)', min:0, max:6, step:0.1, def:2.5, fmt:'dec', hint:'Parte da base que cancela a cada mês. O plano de gestão assume 1,5%; a referência deste material é 2,5%.'},
+    {id:'teto', label:'Teto de penetração (% da torcida)', min:1, max:6, step:0.1, def:3, fmt:'dec', hint:'Limite máximo de sócios, como % da torcida (cerca de 21 milhões). Perto do teto, as entradas vão diminuindo.'},
+    {id:'elimMes', label:'Mês da eliminação (0 = sem)', min:0, max:36, step:1, def:0, fmt:'int', hint:'Mês em que o time é eliminado de uma competição importante. Nesse mês o cancelamento sobe 8,3% da base, como após a Libertadores. 0 = sem eliminação.'},
+    {id:'tituloMes', label:'Mês da conquista de título (0 = sem)', min:0, max:36, step:1, def:0, fmt:'int', hint:'Mês em que o time conquista um título. Nesse mês entram sócios extras, equivalentes a 8,3% da base. 0 = sem título.', tag:true},
     {g:'Receita'},
-    {id:'mensal', label:'Mensalidade do plano básico (R$)', min:5, max:30, step:0.1, def:9.9, fmt:'dec', hint:'Plano de entrada'},
-    {id:'uso', label:'Sócios que usam a carteira (%)', min:0, max:100, step:5, def:30, fmt:'pct', hint:'Ilustrativo', tag:true},
-    {id:'gasto', label:'Gasto mensal em parceiros (R$)', min:0, max:500, step:10, def:120, fmt:'int', hint:'Ilustrativo, por sócio que usa', tag:true},
-    {id:'comissao', label:'Repasse dos parceiros ao clube (%)', min:0, max:10, step:0.5, def:4, fmt:'dec', hint:'Lojas parceiras pagam 4%'}
+    {id:'mensal', label:'Mensalidade do plano básico (R$)', min:5, max:30, step:0.1, def:9.9, fmt:'dec', hint:'Valor pago por cada sócio no plano de entrada. É a base do cálculo da receita mensal.'},
+     
+     
+     
   ];
 
   var state = {horizon:12, override:{}, preset:'tom'};
@@ -215,8 +215,8 @@ header{position:relative}
       var indicadores = start * s.pctInd/100;
       var indicacoes = indicadores * s.perSocio;
       var novosMGM = indicacoes * (s.conv/100) * sat;
-      var outros = s.captacao * sat;
-      var churnT = s.churn/100 + (t===s.shockMes ? s.shockExtra/100 : 0);
+      var outros = s.captacao * sat + (t===s.tituloMes ? start * 0.083 * sat : 0);
+      var churnT = s.churn/100 + (t===s.elimMes ? 0.083 : 0);
       var cancel = start * churnT;
       var end = start + novosMGM + outros - cancel;
       var adj = false;
@@ -226,7 +226,7 @@ header{position:relative}
     }
     rows.forEach(function(r,i){
       r.ingressos = i>=3 ? rows[i-3].novosMGM * Math.pow(1 - s.churn/100, 3) : 0;
-      r.receita = r.end * s.mensal + r.end * (s.uso/100) * s.gasto * (s.comissao/100);
+      r.receita = r.end * s.mensal;
     });
     return rows;
   }
@@ -379,7 +379,7 @@ header{position:relative}
       + kpi('Mês da meta', hit?('mês '+hit):'não atinge', 'meta de '+mil(s.meta)+' sócios')
       + kpi('Sócios no mês '+s.horizon, nf(last.end), nf(last.end/TORCIDA*100,2)+'% da torcida')
       + kpi('Crescimento líquido', nf(netMonthly*100,1)+'% ao mês', 'média no horizonte')
-      + kpi('Receita mensal, mês 12', brl(r12.receita), 'mensalidade + parceiros')
+      + kpi('Receita mensal, mês 12', brl(r12.receita), 'mensalidade dos sócios')
       + kpi('Cancelamento anual', nf(churnYear*100,1)+'%', 'equivalente a '+nf(s.churn,1)+'% ao mês');
     drawChart(rows); drawPen(rows); drawTable(rows, hit);
     FIELDS.forEach(function(f){ if(!f.warnAbove) return; var w=document.getElementById('w_'+f.id); if(w) w.hidden = !(state[f.id] > f.warnAbove); });
